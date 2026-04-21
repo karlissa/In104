@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -g -Wall -I include/
 SRC = src
 INC = include
-OBJ = $(SRC)/main.o $(SRC)/functions.o $(SRC)/mazeEnv.o $(SRC)/Qlearning.o 
+OBJ = $(SRC)/main.o $(SRC)/functions.o $(SRC)/mazeEnv.o $(SRC)/qlearning.o 
 TARGET = $(SRC)/main
 
 # Règle par défaut
@@ -21,7 +21,7 @@ $(SRC)/functions.o: $(SRC)/functions.c $(INC)/functions.h
 $(SRC)/mazeEnv.o: $(SRC)/mazeEnv.c $(INC)/mazeEnv.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(SRC)/Qlearning.o: $(SRC)/Qlearning.c $(INC)/Qlearning.h
+$(SRC)/Qlearning.o: $(SRC)/qlearning.c $(INC)/qlearning.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Nettoyage
