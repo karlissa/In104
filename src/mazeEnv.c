@@ -17,7 +17,7 @@ void alloc_mazeEnv(){
      mazeEnv = malloc(rows * sizeof(char*));
 
      for(int i=0; i<rows; i++) {
-         mazeEnv[i] = malloc(cols * sizeof(char*));
+         mazeEnv[i] = malloc(cols * sizeof(char));
      }
 }
 
@@ -89,17 +89,6 @@ void mazeEnv_render(){
      printf("\n");
 }
 
-void mazeEnv_render_pos(){
-     mazeEnv[state_row][state_col] = 'o';
-     for (int i=0; i<rows; i++) {
-         for (int j=0; j< cols; j++){
-             printf("%c ", mazeEnv[i][j]);
-         }
-         printf("\n");
-     }
-     printf("\n");
-}
-
 
 void mazeEnv_reset(){
      state_row = start_row;
@@ -115,9 +104,9 @@ envOutput mazeEnv_step(action a){
     if (a==up){
        state_row = max(0,state_row -1);
     }else if (a==down){
-       state_row = min(rows,state_row +1);
+       state_row = min(rows-1,state_row +1);
     }else if (a==right){
-       state_col = min(cols,state_col +1);
+       state_col = min(cols-1,state_col +1);
     }else if (a==left){
        state_col = max(0,state_col -1);
     }
@@ -135,16 +124,13 @@ envOutput mazeEnv_step(action a){
    return stepOut;
 }
 
-action env_action_sample(){
-  return (enum action)(rand() % number_actions);
-}
 
 void alloc_visited()
 {
         visited = malloc(rows * sizeof(int*));
         int i;
         for (i = 0; i < rows; ++i){
-                visited[i] = malloc(cols * sizeof(int*));
+                visited[i] = malloc(cols * sizeof(int));
         }
 }
 
