@@ -1,12 +1,32 @@
-src/dfs         : src/dfs.o src/functions.o src/mazeEnv.o
-	gcc -I include/ -g -o src/dfs src/dfs.o src/functions.o src/mazeEnv.o -Wall
+# Variables
+CC = gcc
+CFLAGS = -g -Wall -I include/
+SRC = src
+INC = include
+OBJ = $(SRC)/main.o $(SRC)/functions.o $(SRC)/mazeEnv.o $(SRC)/Qlearning.o $(SRC)/DoubleQlearning.o
+TARGET = $(SRC)/main
 
-src/dfs.o       : src/dfs.c  include/mazeEnv.h
-	gcc -I include/ -g -o src/dfs.o -c src/dfs.c -Wall
+# Règle par défaut
+all: $(TARGET)
 
-src/functions.o : src/functions.c include/functions.h
-	gcc -I include/ -g -o src/functions.o -c src/functions.c -Wall
+# Exécutable final
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
-src/mazeEnv.o   : src/mazeEnv.c include/mazeEnv.h
-	gcc -I include/ -g -o src/mazeEnv.o -c src/mazeEnv.c -Wall
+# Compilation des fichiers .c en .o
 
+$(SRC)/functions.o: $(SRC)/functions.c $(INC)/functions.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(SRC)/mazeEnv.o: $(SRC)/mazeEnv.c $(INC)/mazeEnv.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(SRC)/Qlearning.o: $(SRC)/Qlearning.c $(INC)/Qlearning.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Nettoyage
+clean:
+	rm -f $(SRC)/*.o *~
+
+realclean: clean
+	rm -f $(TARGET)
