@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -g -Wall -I include/
 SRC = src
 INC = include
-OBJ = $(SRC)/main.o $(SRC)/functions.o $(SRC)/mazeEnv.o $(SRC)/Qlearning.o $(SRC)/DoubleQlearning.o
+OBJ = $(SRC)/main.o $(SRC)/functions.o $(SRC)/mazeEnv.o $(SRC)/Qlearning.o 
 TARGET = $(SRC)/main
 
 # Règle par défaut
