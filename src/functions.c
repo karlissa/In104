@@ -24,3 +24,9 @@ void free_tab(float** tab, int num_states) {
     }
     free(tab);
 }
+
+int conversion_en_state(int s_row,int s_col){
+    int s=s_row*cols+s_col;
+    return s;
+}
+

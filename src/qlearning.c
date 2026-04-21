@@ -66,3 +66,58 @@ int epsilon_greedy(float* state, float epsilon, int num_actions){
         return best_action;
     }
 }
+
+void Qlearning(float alpha, float gamma, float epsilon, float** Q, 
+    int start_row, int start_col, int goal_state, 
+    int num_states, int num_actions, int num_episodes) {
+
+    for (int episode = 0; episode < num_episodes; ++episode) {
+        mazeEnv_reset();
+        init_visited();
+
+        int row = start_row;
+        int col = start_col;
+        int s = conversion_en_state(row, col);
+        int done = 0;
+        int steps = 0;
+
+        while (!done && steps < 1000) {
+            visited[row][col] = crumb;
+
+            int a = epsilon_greedy(Q[s], epsilon, num_actions);
+            
+            envOutput out = mazeEnv_step(a);
+
+            int r = out.reward;
+            int new_row = out.new_row;
+            int new_col = out.new_col;
+            int s_prime = conversion_en_state(new_row, new_col);
+            done = out.done;
+
+            // Q-learning update
+            float max_Q_s_prime = max_tab(Q[s_prime], num_actions);
+            Q[s][a] = Q[s][a] + alpha * (r + gamma * max_Q_s_prime - Q[s][a]);
+
+            // Préparer l’état suivant
+            row = new_row;
+            col = new_col;
+            s = s_prime;
+            steps++;
+        }
+
+        printf("Épisode %d terminé en %d étapes.\n", episode + 1, steps);
+
+        // Diminution progressive de epsilon (exploration -> exploitation)
+        if (epsilon > 0.1f) {
+            epsilon *= 0.999f;
+        }
+        
+        // Si dernier épisode réussi, garder les miettes
+        if (episode == num_episodes - 1 && done) {
+            visited[row][col] = crumb; // dernière case
+            add_crumbs();              // dessiner les '.' dans mazeEnv
+            printf("Chemin appris affiché ci-dessous :\n");
+            mazeEnv_render();
+        }
+    }
+}
