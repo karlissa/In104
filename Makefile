@@ -14,6 +14,8 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 # Compilation des fichiers .c en .o
+$(SRC)/main.o: $(SRC)/main.c $(INC)/mazeEnv.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(SRC)/functions.o: $(SRC)/functions.c $(INC)/functions.h
 	$(CC) $(CFLAGS) -c -o $@ $<

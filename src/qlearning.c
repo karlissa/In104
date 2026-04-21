@@ -77,6 +77,7 @@ void Qlearning(float alpha, float gamma, float epsilon, float** Q,
 
         int row = start_row;
         int col = start_col;
+
         int s = conversion_en_state(row, col);
         int done = 0;
         int steps = 0;
