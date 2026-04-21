@@ -5,7 +5,7 @@
 #include "functions.h"
 
 // Fonction d'initialisation de la table Q
-void init_Q(float*** Q, int num_states, int num_actions){
+void make_Q(float*** Q, int num_states, int num_actions){
     srand(time(NULL)); // Initialisation du générateur aléatoire
 
     // Allocation dynamique de la Q-table (matrice de float)
