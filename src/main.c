@@ -30,12 +30,13 @@ int main() {
     Qlearning(alpha, gamma, epsilon, Q, start_row, start_col,
               goal_state, num_states, num_actions, num_episodes);
 
-     
-
-    
+    /*Sarsa(alpha, gamma, epsilon, Q, start_row, start_col,
+              goal_state, num_states, num_actions, num_episodes);
+    */
     printf("\n[ POLITIQUE APPPRISE AFFICHÉE SUR LE LABYRINTHE ]\n");
     
     free(Q);
 
     return 0;
 }
+

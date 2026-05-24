@@ -122,3 +122,82 @@ void Qlearning(float alpha, float gamma, float epsilon, float** Q,
         }
     }
 }
+
+void Sarsa(float alpha, float gamma, float epsilon, float** Q,
+           int start_row, int start_col, int goal_state,
+           int num_states, int num_actions, int num_episodes) {
+
+    for (int episode = 0; episode < num_episodes; ++episode) {
+
+        mazeEnv_reset();
+        init_visited();
+
+        int row = start_row;
+        int col = start_col;
+
+        // État actuel s
+        int s = conversion_en_state(row, col);
+
+        // Dans SARSA, on choisit une première action avant la boucle
+        int a = epsilon_greedy(Q[s], epsilon, num_actions);
+
+        int done = 0;
+        int steps = 0;
+
+        while (!done && steps < 1000) {
+            visited[row][col] = crumb;
+
+            // On exécute l'action actuelle dans l'environnement
+            envOutput out = mazeEnv_step(a);
+
+            // On récupère la récompense et la nouvelle position
+            int r = out.reward;
+            int new_row = out.new_row;
+            int new_col = out.new_col;
+
+            // Nouvel état s'
+            int s_prime = conversion_en_state(new_row, new_col);
+
+            // Est-ce que l'épisode est terminé ?
+            done = out.done;
+
+            if (done) {
+                // Si on est arrivé au goal, il n'y a pas de prochaine action utile
+                Q[s][a] = Q[s][a] + alpha * (r - Q[s][a]);
+            } else {
+                // Dans SARSA, on choisit la prochaine action réelle a'
+                int a_prime = epsilon_greedy(Q[s_prime], epsilon, num_actions);
+
+                // Mise à jour SARSA :
+                // Q(s,a) <- Q(s,a) + alpha * [r + gamma * Q(s',a') - Q(s,a)]
+                Q[s][a] = Q[s][a] + alpha * (r + gamma * Q[s_prime][a_prime] - Q[s][a]);
+
+                // On prépare l'étape suivante
+                a = a_prime;
+            }
+
+            // La nouvelle position devient la position actuelle
+            row = new_row;
+            col = new_col;
+            s = s_prime;
+
+            steps++;
+        }
+
+        printf("Épisode SARSA %d terminé en %d étapes.\n", episode + 1, steps);
+
+        // Diminution progressive de epsilon
+        if (epsilon > 0.1f) {
+            epsilon *= 0.999f;
+        }
+
+        // Si c'est le dernier épisode et que l'agent a réussi,
+        // on affiche le chemin appris
+        if (episode == num_episodes - 1 && done) {
+            visited[row][col] = crumb;
+            add_crumbs();
+            printf("Chemin appris avec SARSA affiché ci-dessous :\n");
+            mazeEnv_render();
+        }
+    }
+}
