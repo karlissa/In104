@@ -41,3 +41,16 @@ int conversion_en_state(int s_row,int s_col){
     return s;
 }
 
+float** somme_tabs(float** Q1,float** Q2,int num_rows,int num_cols){
+    float** Q_sum=malloc(sizeof(float*)*num_rows);
+    for(int i=0;i<num_rows;++i){
+        Q_sum[i]=malloc(sizeof(float)*num_cols);
+    }
+    for(int i=0;i<num_rows;++i){
+        for(int j=0;j<num_cols;++j){
+            Q_sum[i][j]=Q1[i][j]+Q2[i][j];
+        }
+    }
+    return Q_sum;
+}
+

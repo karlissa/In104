@@ -17,4 +17,6 @@ float max_tab(float* tab,int taille);
 
 void free_tab(float** tab, int num_states);
 
+float** somme_tabs(float** Q1,float** Q2,int num_rows,int num_cols);
+
 #endif
