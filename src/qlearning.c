@@ -117,6 +117,10 @@ void Qlearning(float alpha, float gamma, float epsilon, float** Q,
             visited[row][col] = crumb;
 
             int a = epsilon_greedy(Q[s], epsilon, num_actions);
+
+            /* utilisation de la politique Boltzmann 
+            int a = boltzmann_exploration(Q[s], num_actions);
+            */
             
             envOutput out = mazeEnv_step(a);
 

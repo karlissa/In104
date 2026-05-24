@@ -23,7 +23,7 @@ $(SRC)/functions.o: $(SRC)/functions.c $(INC)/functions.h
 $(SRC)/mazeEnv.o: $(SRC)/mazeEnv.c $(INC)/mazeEnv.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(SRC)/Qlearning.o: $(SRC)/qlearning.c $(INC)/qlearning.h
+$(SRC)/qlearning.o: $(SRC)/qlearning.c $(INC)/qlearning.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Nettoyage
