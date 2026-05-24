@@ -41,4 +41,3 @@ int main(){
    mazeEnv_render();
    return 0;
 }
-

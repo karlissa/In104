@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <time.h>
 #include "mazeEnv.h"
 #include "functions.h"
@@ -65,6 +66,36 @@ int epsilon_greedy(float* state, float epsilon, int num_actions){
         // Sécurité en cas de problème d'arrondi
         return best_action;
     }
+}
+
+int boltzmann_exploration(float* state, int num_actions) {
+    float* probs = malloc(num_actions * sizeof(float));
+    float sum = 0.0;
+
+    // calcul des poids exponentiels
+    for (int i = 0; i < num_actions; ++i) {
+        probs[i] = exp(state[i]); 
+        sum += probs[i];
+    }
+
+    // normalisation en probabilités (on veut que la somme des poids soit égale à 1)
+    for (int i = 0; i < num_actions; ++i) {
+        probs[i] /= sum;
+    }
+
+    float r = (float)rand() / RAND_MAX;
+    float cumulative = 0.0;
+
+    for (int i = 0; i < num_actions; ++i) {
+        cumulative += probs[i];
+        if (r < cumulative) {
+            free(probs);
+            return i;
+        }
+    }
+
+    free(probs);
+    return num_actions - 1;
 }
 
 void Qlearning(float alpha, float gamma, float epsilon, float** Q, 
