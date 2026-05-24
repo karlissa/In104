@@ -115,10 +115,10 @@ void Qlearning(float alpha, float gamma, float epsilon, float** Q,
 
         while (!done && steps < 1000) {
             visited[row][col] = crumb;
-
+        
             int a = epsilon_greedy(Q[s], epsilon, num_actions);
 
-            /* utilisation de la politique Boltzmann 
+            /*utilisation de la politique Boltzmann 
             int a = boltzmann_exploration(Q[s], num_actions);
             */
             
@@ -149,11 +149,15 @@ void Qlearning(float alpha, float gamma, float epsilon, float** Q,
         }
         
         // Si dernier épisode réussi, garder les miettes
-        if (episode == num_episodes - 1 && done) {
-            visited[row][col] = crumb; // dernière case
-            add_crumbs();              // dessiner les '.' dans mazeEnv
+        if (episode == num_episodes - 1) {
+        if (done) {
+            visited[row][col] = crumb;
             printf("Chemin appris affiché ci-dessous :\n");
-            mazeEnv_render();
+        } else {
+            printf("Dernier épisode non réussi, chemin partiel affiché ci-dessous :\n");
+        }
+        add_crumbs();
+        mazeEnv_render();
         }
     }
 }

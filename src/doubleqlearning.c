@@ -56,11 +56,15 @@ void DoubleQlearning(float alpha, float gamma, float epsilon, float** Q1, float*
             epsilon *= 0.995f;
         }
 
-        if (episode == num_episodes - 1 && done) {
-            visited[row][col] = crumb;  
-            add_crumbs();
-            printf("Chemin appris avec Double Q-learning :\n");
-            mazeEnv_render();
+        if (episode == num_episodes - 1) {
+        if (done) {
+            visited[row][col] = crumb;
+            printf("Chemin appris affiché ci-dessous :\n");
+        } else {
+            printf("Dernier épisode non réussi, chemin partiel affiché ci-dessous :\n");
+        }
+        add_crumbs();
+        mazeEnv_render();
         }
     }
 }

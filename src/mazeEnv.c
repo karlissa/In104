@@ -17,7 +17,7 @@ void alloc_mazeEnv(){
      mazeEnv = malloc(rows * sizeof(char*));
 
      for(int i=0; i<rows; i++) {
-         mazeEnv[i] = malloc(cols * sizeof(char));
+         mazeEnv[i] = malloc(cols * sizeof(char*));
      }
 }
 
@@ -89,6 +89,17 @@ void mazeEnv_render(){
      printf("\n");
 }
 
+void mazeEnv_render_pos(){
+     mazeEnv[state_row][state_col] = 'o';
+     for (int i=0; i<rows; i++) {
+         for (int j=0; j< cols; j++){
+             printf("%c ", mazeEnv[i][j]);
+         }
+         printf("\n");
+     }
+     printf("\n");
+}
+
 
 void mazeEnv_reset(){
      state_row = start_row;
@@ -101,36 +112,55 @@ envOutput mazeEnv_step(action a){
     int done = 0;
     envOutput stepOut;
 
-    if (a==up){
-       state_row = max(0,state_row -1);
-    }else if (a==down){
-       state_row = min(rows-1,state_row +1);
-    }else if (a==right){
-       state_col = min(cols-1,state_col +1);
-    }else if (a==left){
-       state_col = max(0,state_col -1);
-    }
-    
-    if((state_row == goal_row) && (state_col == goal_col)){
-       reward = 10000;
-       done   = 1;
+    int new_row = state_row;
+    int new_col = state_col;
+
+    // 1. Calculer la nouvelle position proposée
+    if (a == up){
+        new_row = max(0, state_row - 1);
+    } else if (a == down){
+        new_row = min(rows - 1, state_row + 1);
+    } else if (a == right){
+        new_col = min(cols - 1, state_col + 1);
+    } else if (a == left){
+        new_col = max(0, state_col - 1);
     }
 
+    // 2. Si la nouvelle case est un mur, on ne bouge pas
+    if (mazeEnv[new_row][new_col] == '+') {
+        reward = -100;
+        new_row = state_row;
+        new_col = state_col;
+    } else {
+        state_row = new_row;
+        state_col = new_col;
+    }
+
+    // 3. Si on arrive au goal
+    if ((state_row == goal_row) && (state_col == goal_col)) {
+        reward = 10000;
+        done = 1;
+    }
+
+    // 4. Remplir la structure de sortie
     stepOut.reward = reward;
-    stepOut.done   = done;
+    stepOut.done = done;
+    stepOut.new_row = state_row;
     stepOut.new_col = state_col;
-    stepOut.new_row = state_row; 
 
-   return stepOut;
+    return stepOut;
 }
 
+action env_action_sample(){
+  return (enum action)(rand() % number_actions);
+}
 
 void alloc_visited()
 {
         visited = malloc(rows * sizeof(int*));
         int i;
         for (i = 0; i < rows; ++i){
-                visited[i] = malloc(cols * sizeof(int));
+                visited[i] = malloc(cols * sizeof(int*));
         }
 }
 
@@ -154,6 +184,17 @@ void init_visited()
 }
 
 void add_crumbs(){
+     for (int i = 0; i < rows; i++){
+          for (int j = 0; j < cols; j++){
+              if (visited[i][j] == crumb && mazeEnv[i][j] != 's' && mazeEnv[i][j] != 'g'){
+                  mazeEnv[i][j] = '.';
+              }
+          }
+     }
+}
+
+/*
+void add_crumbs(){
      for (int i=0; i<rows; i++){
           for (int j=0; j<cols; j++){
               if (visited[i][j] ==crumb){
@@ -162,5 +203,6 @@ void add_crumbs(){
           }
      }
      mazeEnv[start_row][start_col]= 's';
+     mazeEnv[goal_row][goal_col] = 'g';
 }
-
+*/

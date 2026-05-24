@@ -49,9 +49,13 @@ void mazeEnv_make(char* );
 
 void mazeEnv_render();
 
+void mazeEnv_render_pos();
+
 void mazeEnv_reset();
 
 envOutput mazeEnv_step(action a);
+
+action env_action_sample();
 
 void alloc_visited();
 
