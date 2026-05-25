@@ -9,8 +9,8 @@ int main() {
 
     float alpha = 0.5;
     float gamma = 0.9;
-    float epsilon = 1.0;
-    int num_episodes = 1000;
+    float epsilon = 0.9;
+    int num_episodes = 3000;
     int num_states = rows * cols;
     int num_actions = 4;
     int goal_state = conversion_en_state(goal_row, goal_col);
