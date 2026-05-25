@@ -5,7 +5,7 @@
 #include "doubleqlearning.h"
 
 int main() {
-    mazeEnv_make("../data/maze.txt");
+    mazeEnv_make("../data/maze_hard_21x41.txt");
 
     float alpha = 0.5;
     float gamma = 0.9;

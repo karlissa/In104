@@ -19,7 +19,7 @@ void DoubleQlearning(float alpha, float gamma, float epsilon, float** Q1, float*
         int done = 0;
         int steps = 0;
 
-        while (!done && steps < 1000) {
+        while (!done && steps < 3000) {
             visited[row][col] = crumb; 
 
             // Créer Q1 + Q2 pour epsilon-greedy
