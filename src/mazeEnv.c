@@ -108,45 +108,49 @@ void mazeEnv_reset(){
 
 //faire une action &observer récompense et où on se trouve
 envOutput mazeEnv_step(action a){
-    int reward = 0;
+    int reward = -1;
     int done = 0;
     envOutput stepOut;
+    int old_row = state_row;
+    int old_col = state_col;
 
-    int new_row = state_row;
-    int new_col = state_col;
-
-    // 1. Calculer la nouvelle position proposée
-    if (a == up){
-        new_row = max(0, state_row - 1);
-    } else if (a == down){
-        new_row = min(rows - 1, state_row + 1);
-    } else if (a == right){
-        new_col = min(cols - 1, state_col + 1);
-    } else if (a == left){
-        new_col = max(0, state_col - 1);
+    
+    if (a == up) {
+        if (state_row > 0 && mazeEnv[state_row - 1][state_col] != '+') {
+            state_row--;
+        }
+    } else if (a == down) {
+        if (state_row < rows - 1 && mazeEnv[state_row + 1][state_col] != '+') {
+            state_row++;
+        }
+    } else if (a == right) {
+        if (state_col < cols - 1 && mazeEnv[state_row][state_col + 1] != '+') {
+            state_col++;
+        }
+    } else if (a == left) {
+        if (state_col > 0 && mazeEnv[state_row][state_col - 1] != '+') {
+            state_col--;
+        }
     }
 
-    // 2. Si la nouvelle case est un mur, on ne bouge pas
-    if (mazeEnv[new_row][new_col] == '+') {
-        reward = -100;
-        new_row = state_row;
-        new_col = state_col;
-    } else {
-        state_row = new_row;
-        state_col = new_col;
-    }
+    // Vérifie si l'agent a bougé
+    int moved = (old_row != state_row) || (old_col != state_col);
 
-    // 3. Si on arrive au goal
+    // Récompense selon le mouvement ou l'objectif atteint
     if ((state_row == goal_row) && (state_col == goal_col)) {
-        reward = 10000;
-        done = 1;
-    }
+    reward = 1000;  // Récompense plus raisonnable
+    done = 1;
+} else if (!moved) {
+    reward = -10;  // Punition plus forte pour les murs
+} else {
+    reward = -1;   // Petit coût pour chaque pas
+}
 
-    // 4. Remplir la structure de sortie
+    // Prépare la sortie
     stepOut.reward = reward;
     stepOut.done = done;
-    stepOut.new_row = state_row;
     stepOut.new_col = state_col;
+    stepOut.new_row = state_row;
 
     return stepOut;
 }
