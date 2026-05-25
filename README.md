@@ -1,142 +1,337 @@
-# Reinforcement Learning Project : Maze 
-# Projet Labyrinthe - DFS et Q-learning
+# Reinforcement Learning Project : Maze
+# Projet Labyrinthe - DFS, Q-learning, SARSA et Double Q-learning
 
 ## Présentation
 
-Ce projet a pour but de résoudre un labyrinthe en C.
+Ce projet implémente un environnement de labyrinthe en C et plusieurs méthodes de résolution ou d’apprentissage :
 
-Pour le moment, nous avons surtout travaillé sur :
-- la création et la gestion de l’environnement du labyrinthe ;
-- une recherche de chemin avec DFS ;
-- une première implémentation du Q-learning ;
-- un `main` qui charge le labyrinthe et lance l’apprentissage.
+- DFS pour vérifier l’existence d’un chemin ;
+- Q-learning ;
+- SARSA ;
+- Double Q-learning ;
+- politiques d’exploration `epsilon_greedy` et `boltzmann_exploration`.
 
-Le projet n’est pas encore terminé. Ce README décrit uniquement les parties actuellement réalisées.
-
----
-
-## Objectif
-
-L’idée est de faire évoluer un agent dans un labyrinthe à partir d’une case de départ jusqu’à une case objectif.
-
-Deux approches sont présentes à ce stade :
-- une approche classique avec DFS ;
-- une approche d’apprentissage par renforcement avec Q-learning.
+L’agent part de la case `s` et doit atteindre la case `g` en évitant les murs `+`.
 
 ---
 
-## Fichiers réalisés
+## Structure du projet
 
-### `mazeEnv.c`
+```text
+In104/
+├── data/
+│   ├── maze.txt
+│   ├── maze_deadends_17x33.txt
+│   ├── maze_hard_21x41.txt
+│   ├── maze_loops_15x31.txt
+│   ├── maze_very_hard_25x51.txt
+│   └── README.txt
+│
+├── new_maze_tests/
+│   ├── maze_easy_7x15.txt
+│   ├── maze_medium_11x21.txt
+│   ├── maze_loops_15x31.txt
+│   ├── maze_deadends_17x33.txt
+│   ├── maze_hard_21x41.txt
+│   ├── maze_very_hard_25x51.txt
+│   └── README.txt
+│
+├── include/
+│   ├── dfs.h
+│   ├── doubleqlearning.h
+│   ├── functions.h
+│   ├── main.h
+│   ├── mazeEnv.h
+│   └── qlearning.h
+│
+├── src/
+│   ├── dfs.c
+│   ├── doubleqlearning.c
+│   ├── functions.c
+│   ├── main.c
+│   ├── mazeEnv.c
+│   └── qlearning.c
+│
+├── Makefile
+└── README.md
+```
+
+---
+
+## Compilation
+
+La compilation du programme principal se fait avec :
+
+```bash
+make
+```
+
+L’exécutable généré est :
+
+```text
+src/main
+```
+
+Le `Makefile` compile le programme principal avec :
+
+- `main.c`
+- `functions.c`
+- `mazeEnv.c`
+- `qlearning.c`
+- `doubleqlearning.c`
+
+La librairie mathématique est liée avec `-lm`, nécessaire pour `exp()` dans la politique de Boltzmann.
+
+---
+
+## Lancement
+
+Le programme utilise des chemins relatifs du type :
+
+```c
+mazeEnv_make("../data/maze_hard_21x41.txt");
+```
+
+Il faut donc lancer l’exécutable depuis le dossier `src` :
+
+```bash
+cd src
+./main
+```
+
+---
+
+## Fichiers de labyrinthes
+
+Les labyrinthes sont stockés dans `data/` et `new_maze_tests/`.
+
+Format attendu :
+
+```text
+nombre_lignes,nombre_colonnes
+labyrinthe
+```
+
+Symboles utilisés :
+
+```text
++ : mur
+s : départ
+g : objectif
+  : case libre
+. : chemin affiché après apprentissage ou DFS
+```
+
+Exemple :
+
+```text
+7,15
++++++++++++++++
++s+   +       +
++ + + + + +++ +
++   +   +   +g+
++++ +++++ +++ +
++             +
++++++++++++++++
+```
+
+Labyrinthes ajoutés :
+
+- `maze_easy_7x15.txt`
+- `maze_medium_11x21.txt`
+- `maze_loops_15x31.txt`
+- `maze_deadends_17x33.txt`
+- `maze_hard_21x41.txt`
+- `maze_very_hard_25x51.txt`
+
+Pour tester un autre labyrinthe, il suffit de modifier le fichier lu dans `main.c`, par exemple :
+
+```c
+mazeEnv_make("../data/maze_very_hard_25x51.txt");
+```
+
+---
+
+## `mazeEnv.c`
 
 Ce fichier gère l’environnement du labyrinthe.
 
-Fonctions présentes :
-- `alloc_mazeEnv()` : alloue dynamiquement le labyrinthe ;
-- `mazeEnv_make(char* file_name)` : charge le labyrinthe depuis un fichier texte, lit ses dimensions et repère le départ et l’arrivée ;
-- `mazeEnv_render()` : affiche le labyrinthe dans le terminal ;
-- `mazeEnv_reset()` : remet l’agent sur la case de départ ;
-- `mazeEnv_step(action a)` : applique une action et renvoie le nouvel état, la récompense et si l’objectif est atteint ;
-- `alloc_visited()` : alloue la matrice des cases visitées ;
-- `init_visited()` : initialise cette matrice selon le contenu du labyrinthe ;
-- `add_crumbs()` : ajoute des points `.` sur le chemin trouvé.
+Fonctions principales :
+
+- `alloc_mazeEnv()` : alloue la matrice du labyrinthe ;
+- `mazeEnv_make(char* file_name)` : lit un fichier de labyrinthe, récupère les dimensions, le départ et l’objectif ;
+- `mazeEnv_render()` : affiche le labyrinthe ;
+- `mazeEnv_render_pos()` : affiche le labyrinthe avec la position actuelle de l’agent ;
+- `mazeEnv_reset()` : remet l’agent au départ ;
+- `mazeEnv_step(action a)` : applique une action et renvoie la récompense, la nouvelle position et `done` ;
+- `env_action_sample()` : retourne une action aléatoire ;
+- `alloc_visited()` : alloue la matrice `visited` ;
+- `init_visited()` : initialise `visited` à partir du labyrinthe ;
+- `add_crumbs()` : ajoute les points `.` sur les cases marquées comme chemin.
+
+Dans `mazeEnv_step`, les récompenses utilisées sont :
+
+```text
+Déplacement normal : -1
+Mur / mouvement impossible : -10
+Objectif atteint : +1000
+```
 
 ---
 
-### `functions.c`
+## `functions.c`
 
-Ce fichier contient des fonctions utilitaires utilisées dans le projet.
+Fonctions utilitaires :
 
-Fonctions présentes :
 - `min(int a, int b)` ;
 - `max(int a, int b)` ;
-- `max_i(float* tab, int taille)` : retourne l’indice de la plus grande valeur d’un tableau ;
-- `max_tab(float* tab, int taille)` : retourne la plus grande valeur d’un tableau ;
-- `conversion_en_state(int s_row, int s_col)` : convertit une position du labyrinthe en état ;
-- `free_tab(float** tab, int num_states)` : libère une table allouée dynamiquement.
+- `max_i(float* tab, int taille)` : retourne l’indice du maximum ;
+- `max_tab(float* tab, int taille)` : retourne la valeur maximale ;
+- `conversion_en_state(int s_row, int s_col)` : convertit une position `(row, col)` en état ;
+- `free_tab(float** tab, int num_states)` : libère une table allouée dynamiquement ;
+- `somme_tabs(float** Q1, float** Q2, int num_rows, int num_cols)` : retourne la somme de deux tables Q.
 
 ---
 
-### `dfs.c`
+## `dfs.c`
 
-Ce fichier contient une recherche en profondeur du labyrinthe.
+Ce fichier contient une résolution classique par recherche en profondeur.
 
 Fonctions présentes :
-- `dfs(int row, int col)` : explore récursivement le labyrinthe jusqu’à trouver la sortie ;
-- un `main` de test permettant de charger le labyrinthe, lancer le DFS, puis afficher le chemin trouvé avec des miettes.
 
-Le DFS permet surtout de vérifier que le labyrinthe peut être parcouru et d’afficher un chemin vers la sortie.
+- `dfs(int row, int col)` : explore récursivement les cases du labyrinthe ;
+- `main()` : charge `../data/maze.txt`, initialise `visited`, lance DFS et affiche le chemin.
+
+Le DFS utilise `visited` pour éviter les murs et les cases déjà explorées.
 
 ---
 
-### `qlearning.c`
+## `qlearning.c`
 
-Ce fichier contient la partie apprentissage par renforcement.
+Ce fichier contient les méthodes d’apprentissage principales.
 
 Fonctions présentes :
-- `make_Q(float*** Q, int num_states, int num_actions)` : alloue et initialise la table Q ;
-- `epsilon_greedy(float* state, float epsilon, int num_actions)` : choisit une action avec une politique epsilon-greedy ;
-- `Qlearning(float alpha, float gamma, float epsilon, float** Q, int start_row, int start_col, int goal_state, int num_states, int num_actions, int num_episodes)` : réalise l’apprentissage sur plusieurs épisodes.
 
-Principe actuel :
-- l’agent part de la position de départ ;
-- il choisit des actions dans le labyrinthe ;
-- il met à jour sa table Q au fur et à mesure ;
-- en fin d’apprentissage, si l’objectif est atteint, le chemin appris peut être affiché sur le labyrinthe.
+- `make_Q(float*** Q, int num_states, int num_actions)` : alloue et initialise une table Q ;
+- `epsilon_greedy(float* state, float epsilon, int num_actions)` : choisit une action avec exploration/exploitation ;
+- `boltzmann_exploration(float* state, int num_actions)` : choisit une action avec une probabilité basée sur `exp(Q)` ;
+- `Qlearning(...)` : entraîne l’agent avec Q-learning ;
+- `Sarsa(...)` : entraîne l’agent avec SARSA.
 
----
+### Q-learning
 
-### `main.c`
+La mise à jour utilisée est :
 
-Le `main` actuel :
-- charge le labyrinthe depuis `../data/maze.txt` ;
-- définit les paramètres principaux du Q-learning (`alpha`, `gamma`, `epsilon`, nombre d’épisodes) ;
-- calcule le nombre d’états et le nombre d’actions ;
-- crée la table Q avec `make_Q` ;
-- lance la fonction `Qlearning(...)` ;
-- affiche des informations sur le labyrinthe ;
-- libère la mémoire à la fin avec `free_tab`.
+```text
+Q(s,a) <- Q(s,a) + alpha * [r + gamma * max Q(s',a') - Q(s,a)]
+```
 
----
+### SARSA
 
-## Paramètres utilisés actuellement
+SARSA choisit aussi l’action suivante avant la mise à jour :
 
-Dans le `main`, les paramètres choisis sont :
-- `alpha = 0.5`
-- `gamma = 0.9`
-- `epsilon = 0.9`
-- `num_episodes = 1500`
+```text
+Q(s,a) <- Q(s,a) + alpha * [r + gamma * Q(s',a') - Q(s,a)]
+```
 
-Le nombre d’actions possibles est fixé à 4.
+### Boltzmann
+
+La fonction `boltzmann_exploration` calcule des probabilités à partir des valeurs Q avec :
+
+```c
+exp(state[i])
+```
+
+Elle est présente dans le code, et peut être utilisée à la place de `epsilon_greedy` dans `Qlearning`.
 
 ---
 
-## Ce que le programme fait actuellement
+## `doubleqlearning.c`
 
-À ce stade, le projet permet :
-- de lire un labyrinthe depuis un fichier ;
-- d’afficher le labyrinthe ;
-- de tester une résolution avec DFS ;
-- de lancer un apprentissage par Q-learning ;
-- d’afficher le chemin appris si l’agent atteint l’objectif au dernier épisode.
+Ce fichier contient l’algorithme Double Q-learning.
+
+Fonction présente :
+
+- `DoubleQlearning(...)`
+
+Le Double Q-learning utilise deux tables :
+
+```text
+Q1
+Q2
+```
+
+L’action est choisie à partir de la somme :
+
+```text
+Q1 + Q2
+```
+
+Puis, à chaque étape, une seule table est mise à jour avec une probabilité de 50 %.
 
 ---
 
-## Avancement du projet
+## `main.c`
 
-Parties réalisées :
-- environnement du labyrinthe ;
-- affichage ;
-- gestion des états visités ;
-- DFS ;
-- Q-learning ;
-- `main` de lancement pour le Q-learning.
+Le `main` actif charge actuellement :
 
-Parties non décrites ici :
-- toute autre extension non encore implémentée dans nos fichiers actuels.
+```c
+mazeEnv_make("../data/maze_hard_21x41.txt");
+```
+
+Paramètres actuels :
+
+```c
+alpha = 0.5
+gamma = 0.9
+epsilon = 1.0
+num_episodes = 1000
+num_actions = 4
+```
+
+Le programme crée deux tables `Q1` et `Q2`, puis lance :
+
+```c
+DoubleQlearning(...)
+```
+
+Un ancien bloc de code pour `Qlearning` et `Sarsa` est présent en commentaire dans `main.c`.
 
 ---
 
-## Remarque
+## Changer d’algorithme
 
-Ce README correspond uniquement à notre avancement actuel du projet. Il ne décrit pas une version finale complète, mais seulement les éléments que nous avons effectivement codés jusqu’à maintenant.
+Le programme principal lance actuellement Double Q-learning.
+
+Pour utiliser Q-learning ou SARSA, il faut modifier le `main.c` en utilisant les appels déjà présents dans le bloc commenté :
+
+```c
+Qlearning(...)
+Sarsa(...)
+```
+
+---
+
+## Paramètres importants
+
+- `alpha` : taux d’apprentissage ;
+- `gamma` : importance des récompenses futures ;
+- `epsilon` : niveau d’exploration ;
+- `num_episodes` : nombre d’épisodes d’entraînement ;
+- `steps < 1000` ou `steps < 3000` : limite maximale d’étapes par épisode selon l’algorithme.
+
+Pour les grands labyrinthes, il peut être utile d’augmenter `num_episodes`.
+
+---
+
+## Résumé
+
+Le projet permet de :
+
+- charger plusieurs labyrinthes depuis des fichiers texte ;
+- résoudre un labyrinthe par DFS ;
+- entraîner un agent avec Q-learning ;
+- entraîner un agent avec SARSA ;
+- entraîner un agent avec Double Q-learning ;
+- tester epsilon-greedy et Boltzmann comme politiques d’exploration ;
+- comparer les performances sur différents labyrinthes.
